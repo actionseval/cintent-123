@@ -1,0 +1,100 @@
+name: Code Testing
+
+# CINTENT >> MANUAL TRIGGER
+# on:
+#   pull_request:
+#     branches:
+#       - main
+#       - '[0-9]+.[0-9]+'
+#     paths: # Paths that may affect code quality
+#       - 'superduper/**'
+#       - 'test/**'
+#       - 'pyproject.toml'
+#   workflow_dispatch:
+on: [repository_dispatch, workflow_dispatch]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.job }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------
+  # Unit Testing
+  # ---------------------------------
+  unit_testing:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ "ubuntu-latest" ]
+        
+        # CINTENT >> REMOVE_MATRIX
+        # python-version: ["3.10", "3.11"]
+        python-version: ["3.11"]
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # CINTENT >> INSERT_CINTENT
+    - uses: JavidDitty/setup-cintent@a606c80c34ec190c6a20dea33d6d58ddb6c4e0cc
+
+    # CINTENT >> NOT CI
+    # - name: Validate Changelog Update
+    #   uses: tarides/changelog-check-action@v2
+    #   with:
+    #     changelog: CHANGELOG.md
+
+    #---------------------------------------------------
+    # Configuring Python environments.
+    #
+    # We cache both the pip packages and the installation dir.
+    # If the pyproject remains unchanged, we re-use the existing installation dir.
+    # If the pyproject has changed, we reinstall everything using the cached pip packages.
+    - name: Cache Pip Packages
+      id: setup-python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip' # caching pip dependencies
+
+    - name: Cache Python Installation
+      uses: actions/cache@v4
+      with:
+        path: ${{ env.pythonLocation }} # Cache the whole python installation dir.
+        key: ${{ matrix.os }}_python-${{ matrix.python-version }}_${{ hashFiles('pyproject.toml', '*/pyproject.toml') }}
+      #---------------------------------------------------
+
+    - name: Install superduper-framework
+      run: |
+        # Install core and testsuite dependencies on the cached python environment.
+        python -m pip install '.[test]'
+        # TODO: We currently need a default plugin to run tests using MongoDB. 
+        # Once the local file database is complete, we may need to update this section.
+        python -m pip install plugins/mongodb
+        python -m pip install plugins/openai
+        python -m pip install plugins/sql
+
+
+    - name: Lint and type-check
+      run: |
+        make lint-and-type-check
+
+    - name: Unit Testing
+      run: |
+        make unit_testing pytest_arguments="--cov=superduper --cov-report=xml" SUPERDUPER_CONFIG=test/configs/default.yaml
+        make unit_testing pytest_arguments="--cov=superduper --cov-report=xml" SUPERDUPER_CONFIG=test/configs/sql.yaml
+        make unit_testing pytest_arguments="--cov=superduper --cov-report=xml" SUPERDUPER_CONFIG=test/configs/inmemory.yaml
+
+    - name: Usecase Testing
+      run: |
+        make usecase_testing SUPERDUPER_CONFIG=test/configs/default.yaml
+        make usecase_testing SUPERDUPER_CONFIG=test/configs/sql.yaml
+        make usecase_testing SUPERDUPER_CONFIG=test/configs/inmemory.yaml
+
+    # CINTENT >> INSERT_CINTENT
+    - name: Upload CIntent Artifacts
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: ${{ env.CINTENT_ARTIFACT_NAME }}
+        path: ${{ env.CINTENT_LOGS }}
