@@ -36,7 +36,7 @@ jobs:
       uses: actions/checkout@v4
 
     # CINTENT >> INSERT_CINTENT
-    - uses: JavidDitty/setup-cintent@a606c80c34ec190c6a20dea33d6d58ddb6c4e0cc
+    - uses: JavidDitty/setup-cintent@254e41df4c7acff7e2d604b41050dd5e6b4c3ae4
 
     # CINTENT >> NOT CI
     # - name: Validate Changelog Update
