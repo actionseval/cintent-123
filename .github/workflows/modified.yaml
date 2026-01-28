@@ -35,9 +35,6 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # CINTENT >> INSERT_CINTENT
-    - uses: JavidDitty/setup-cintent@254e41df4c7acff7e2d604b41050dd5e6b4c3ae4
-
     # CINTENT >> NOT CI
     # - name: Validate Changelog Update
     #   uses: tarides/changelog-check-action@v2
@@ -50,12 +47,16 @@ jobs:
     # We cache both the pip packages and the installation dir.
     # If the pyproject remains unchanged, we re-use the existing installation dir.
     # If the pyproject has changed, we reinstall everything using the cached pip packages.
-    - name: Cache Pip Packages
-      id: setup-python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-        cache: 'pip' # caching pip dependencies
+    # CINTENT >> REMOVE_CACHE
+    # - name: Cache Pip Packages
+    #   id: setup-python
+    #   uses: actions/setup-python@v4
+    #   with:
+    #     python-version: ${{ matrix.python-version }}
+    #     cache: 'pip' # caching pip dependencies
+
+    # CINTENT >> INSERT_CINTENT
+    - uses: JavidDitty/setup-cintent@3e5b2faf83a2ad32c22a1cd0f86f5f20ea53a5ab
 
     - name: Cache Python Installation
       uses: actions/cache@v4
