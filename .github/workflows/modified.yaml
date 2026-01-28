@@ -56,7 +56,7 @@ jobs:
     #     cache: 'pip' # caching pip dependencies
 
     # CINTENT >> INSERT_CINTENT
-    - uses: JavidDitty/setup-cintent@3e5b2faf83a2ad32c22a1cd0f86f5f20ea53a5ab
+    - uses: JavidDitty/setup-cintent@e3d420b9a40765f278d3651507e812014bfc7407
 
     # CINTENT >> REMOVE_CACHE
     # - name: Cache Python Installation
